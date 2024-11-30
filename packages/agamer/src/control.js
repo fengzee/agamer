@@ -55,9 +55,7 @@ class Controller {
 
   start() {
     this.scheduleNextRest();
-
-    const initialDelay = generateRandomValue(this.options.dMin, this.options.dMax);
-    this.scheduleNextClick(initialDelay);
+    this.scheduleNextClick();
   }
 
   pauseManually() {
@@ -84,8 +82,7 @@ class Controller {
     this.restTimeRemaining = null;
     this.pauseStartTime = null;
 
-    const nextD = generateRandomValue(this.options.dMin, this.options.dMax);
-    this.scheduleNextClick(nextD);
+    this.scheduleNextClick();
   }
 
   scheduleNextRest() {
@@ -102,8 +99,10 @@ class Controller {
     log(MESSAGES.REST_PLAN(restInterval));
   }
 
-  scheduleNextClick(d) {
+  scheduleNextClick(delay = null) {
     if (this.isManuallyPaused) return;
+
+    const d = delay ?? generateRandomValue(this.options.dMin, this.options.dMax);
 
     this.currentTimeout = setTimeout(() => {
       this.currentTimeout = null;
@@ -139,8 +138,7 @@ class Controller {
         this.currentTimeout = setTimeout(() => {
           this.currentTimeout = null;
           this.scheduleNextRest();
-          const nextD = generateRandomValue(this.options.dMin, this.options.dMax);
-          this.executeNextClick(nextD);
+          this.scheduleNextClick();
         }, restDuration);
         
         return;
@@ -150,13 +148,11 @@ class Controller {
     }, d);
   }
 
-  async executeNextClick(d) {
+  async executeNextClick(delay) {
     if (this.isManuallyPaused) return;
 
     const x = generateRandomValue(this.options.xMin, this.options.xMax);
     const y = generateRandomValue(this.options.yMin, this.options.yMax);
-    const nextD = this.options.dMax === 0 ? 
-      0 : generateRandomValue(this.options.dMin, this.options.dMax);
 
     if (this.isManuallyPaused) return;
 
@@ -174,8 +170,8 @@ class Controller {
       return;
     }
 
-    log(MESSAGES.CLICK_INFO(x, y, d));
-    this.scheduleNextClick(nextD);
+    log(MESSAGES.CLICK_INFO(x, y, delay));
+    this.scheduleNextClick();
   }
 
   stop() {
@@ -192,6 +188,14 @@ class Controller {
     if (this.quitSignal) {
       this.quitSignal();
       this.quitSignal = null;
+    }
+  }
+
+  togglePause() {
+    if (this.isManuallyPaused) {
+      this.resumeFromManualPause();
+    } else {
+      this.pauseManually();
     }
   }
 }

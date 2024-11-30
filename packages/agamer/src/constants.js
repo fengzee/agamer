@@ -4,17 +4,16 @@ const DELAYS = {
 
 const COMMANDS = {
   PAUSE: ['p', 'P'],
-  RESUME: ['r', 'R'],
-  QUIT: ['q', 'Q', '\u0003'],  // Ctrl+C
+  QUIT: ['q', 'Q', '\u0003']
 };
 
 const MESSAGES = {
   START: '开始点击操作，配置: ',
-  COMMANDS_HELP: `按 ${COMMANDS.PAUSE[0]} 暂停，${COMMANDS.RESUME[0]} 继续，${COMMANDS.QUIT[0]} 或 Ctrl+C 退出`,
+  COMMANDS_HELP: `按 ${COMMANDS.PAUSE[0]} 切换暂停/继续，${COMMANDS.QUIT[0]} 或 Ctrl+C 退出`,
   SHELL_CONNECTED: 'adb shell 已连接',
   SHELL_DISCONNECTED: 'adb 设备连接已断开，等待重连...',
   SHELL_RECONNECTING: '尝试重新连接...',
-  PAUSED: '操作已手动暂停，按 p 或 r 继续',
+  PAUSED: '操作已手动暂停，按 p 继续',
   RESUMED: '操作已继续',
   REST_PLAN: (ms) => `计划在 ${ms} ms 后自动休息`,
   REST_START: (ms) => `开始自动休息 ${ms} ms`,
