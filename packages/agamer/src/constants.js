@@ -13,6 +13,7 @@ const MESSAGES = {
   SHELL_CONNECTED: 'adb shell 已连接',
   SHELL_DISCONNECTED: 'adb 设备连接已断开，等待重连...',
   SHELL_RECONNECTING: '尝试重新连接...',
+  SCREEN_SIZE: (width, height) => `屏幕尺寸: ${width}x${height}`,
   PAUSED: '操作已手动暂停，按 p 继续',
   RESUMED: '操作已继续',
   REST_PLAN: (ms) => `计划在 ${ms} ms 后自动休息`,

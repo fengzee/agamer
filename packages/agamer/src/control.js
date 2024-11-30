@@ -24,17 +24,23 @@ class Controller {
     return new Promise((resolve) => {
       this.quitSignal = resolve;
 
-      this.initAdbShell();
       this.initKeyboard();
+      this.initAdbShellAndStart();
     });
   }
 
-  initAdbShell() {
+  initAdbShellAndStart() {
     this.shell = new Shell();
     
-    this.shell.on('connected', () => {
+    this.shell.on('connected', async () => {
       log(MESSAGES.SHELL_CONNECTED);
+      
       if (!this.currentTimeout) {
+        const screenSize = await this.shell.getScreenSize();
+        if (screenSize) {
+          log(MESSAGES.SCREEN_SIZE(screenSize.width, screenSize.height));
+        }
+
         this.start();
       }
     });
