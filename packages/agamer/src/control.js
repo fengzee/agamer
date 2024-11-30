@@ -1,10 +1,11 @@
 const { log } = require('./log');
 const { generateRandomValue } = require('./random');
-const adb = require('./adb');
+const { Shell } = require('fadb');
 
 class Controller {
   constructor(options) {
     this.options = options;
+    this.shell = null;
     this.isManuallyPaused = false;
     this.currentTimeout = null;
     this.nextRestTime = null;
@@ -13,6 +14,33 @@ class Controller {
     this.isDeviceDisconnected = false;
     this.restPaused = false;
     this.hasStarted = false;
+  }
+
+  start() {
+    this.initAdbShell();
+    this.setupKeyboardControl();
+    this.scheduleNextRest();
+    const initialDelay = this.options.dMax === 0 ? 
+      0 : generateRandomValue(this.options.dMin, this.options.dMax);
+    this.scheduleNextClick(initialDelay);
+  }
+
+  initAdbShell() {
+    this.shell = new Shell();
+    
+    this.shell.on('connected', () => {
+      log('adb shell 已连接');
+    });
+
+    this.shell.on('disconnected', () => {
+      log('adb 设备连接已断开，等待重连...');
+    });
+
+    this.shell.on('reconnecting', () => {
+      log('尝试重新连接...');
+    });
+
+    this.shell.init();
   }
 
   setupKeyboardControl() {
@@ -35,13 +63,6 @@ class Controller {
         this.cleanup();
       }
     });
-  }
-
-  start() {
-    this.scheduleNextRest();
-    const initialDelay = this.options.dMax === 0 ? 
-      0 : generateRandomValue(this.options.dMin, this.options.dMax);
-    this.scheduleNextClick(initialDelay);
   }
 
   async pauseManually() {
@@ -91,7 +112,7 @@ class Controller {
     this.currentTimeout = setTimeout(() => {
       this.currentTimeout = null;
       
-      if (!adb.isConnected()) {
+      if (!this.shell.isConnected) {
         if (!this.restPaused) {
           this.restPaused = true;
           if (this.nextRestTime) {
@@ -149,7 +170,7 @@ class Controller {
 
     if (this.isManuallyPaused) return;
 
-    const success = await adb.tap(x, y);
+    const success = await this.shell.tap(x, y);
 
     if (this.isManuallyPaused) return;
 
@@ -168,7 +189,10 @@ class Controller {
   }
 
   cleanup() {
-    adb.cleanup();
+    if (this.shell) {
+      this.shell.cleanup();
+      this.shell = null;
+    }
     process.exit();
   }
 }

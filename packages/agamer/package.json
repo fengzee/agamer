@@ -1,0 +1,17 @@
+{
+  "name": "agamer",
+  "version": "1.0.0",
+  "description": "Auto gamer.",
+  "main": "src/index.js",
+  "bin": {
+    "agamer": "src/index.js"
+  },
+  "scripts": {
+    "start": "node src/index.js"
+  },
+  "dependencies": {
+    "commander": "^12.0.0",
+    "fadb": "^0.1.0",
+    "random": "^3.0.6"
+  }
+} 

@@ -1,0 +1,11 @@
+{
+  "name": "fadb",
+  "version": "0.1.0",
+  "main": "src/index.js",
+  "dependencies": {
+    "events": "^3.3.0"
+  },
+  "files": [
+    "src"
+  ]
+}
