@@ -1,7 +1,7 @@
 const { log } = require('./log');
 const { generateRandomValue } = require('./random');
 const { Shell } = require('fadb');
-const { MESSAGES } = require('./constants');
+const { MESSAGES, DELAYS } = require('./constants');
 const Keyboard = require('./keyboard');
 
 class Controller {
@@ -16,7 +16,6 @@ class Controller {
     this.pauseStartTime = null;
     this.isDeviceDisconnected = false;
     this.restPaused = false;
-    this.hasStarted = false;
   }
 
   async run() {
@@ -25,8 +24,6 @@ class Controller {
 
       this.initAdbShell();
       this.initKeyboard();
-
-      this.start();
     });
   }
 
@@ -35,6 +32,9 @@ class Controller {
     
     this.shell.on('connected', () => {
       log(MESSAGES.SHELL_CONNECTED);
+      if (!this.currentTimeout) {
+        this.start();
+      }
     });
 
     this.shell.on('disconnected', () => {
@@ -74,14 +74,16 @@ class Controller {
   }
 
   resumeFromManualPause() {
+    log(MESSAGES.RESUMED);
     this.isManuallyPaused = false;
+
     if (this.restTimeRemaining && this.restTimeRemaining > 0) {
       this.nextRestTime = Date.now() + this.restTimeRemaining;
       log(MESSAGES.REST_PLAN(this.restTimeRemaining));
     }
     this.restTimeRemaining = null;
     this.pauseStartTime = null;
-    log(MESSAGES.RESUMED);
+
     const nextD = generateRandomValue(this.options.dMin, this.options.dMax);
     this.scheduleNextClick(nextD);
   }
@@ -114,13 +116,7 @@ class Controller {
             this.nextRestTime = null;
           }
         }
-        this.scheduleNextClick(1000);
-        return;
-      }
-
-      if (!this.hasStarted) {
-        this.hasStarted = true;
-        this.executeNextClick(d);
+        this.scheduleNextClick(DELAYS.RETRY_INTERVAL);
         return;
       }
 
@@ -174,7 +170,7 @@ class Controller {
         this.restTimeRemaining = this.nextRestTime - Date.now();
         this.nextRestTime = null;
       }
-      this.scheduleNextClick(1000);
+      this.scheduleNextClick(DELAYS.RETRY_INTERVAL);
       return;
     }
 

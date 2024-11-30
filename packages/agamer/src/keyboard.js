@@ -14,8 +14,8 @@ class Keyboard {
 
   handleKeyPress(key) {
     const keyHandlers = {
-      [COMMANDS.PAUSE]: () => this.controller.handlePauseResume(),
-      [COMMANDS.RESUME]: () => this.controller.handleResume(),
+      [COMMANDS.PAUSE]: () => this.controller.pauseManually(),
+      [COMMANDS.RESUME]: () => this.controller.resumeFromManualPause(),
       [COMMANDS.QUIT]: () => this.controller.stop()
     };
 

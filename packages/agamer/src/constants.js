@@ -1,3 +1,7 @@
+const DELAYS = {
+  RETRY_INTERVAL: 1000,  // 各种失败情况下的重试间隔
+};
+
 const COMMANDS = {
   PAUSE: ['p', 'P'],
   RESUME: ['r', 'R'],
@@ -20,5 +24,6 @@ const MESSAGES = {
 
 module.exports = {
   COMMANDS,
-  MESSAGES
+  MESSAGES,
+  DELAYS
 };
