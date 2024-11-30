@@ -1,0 +1,19 @@
+{
+  "name": "agamer",
+  "version": "1.0.0",
+  "description": "Auto gamer.",
+  "main": "src/index.js",
+  "bin": {
+    "agamer": "src/index.js"
+  },
+  "scripts": {
+    "start": "node src/index.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "dependencies": {
+    "random": "^3.0.6",
+    "commander": "^12.0.0"
+  },
+  "author": "fengzee",
+  "license": "ISC"
+}

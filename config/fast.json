@@ -1,0 +1,6 @@
+{
+  "dMin": 50,
+  "dMax": 200,
+  "pauseIntervalMin": 10000,
+  "pauseIntervalMax": 20000
+}

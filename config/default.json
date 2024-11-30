@@ -1,0 +1,12 @@
+{
+  "dMin": 120,
+  "dMax": 300,
+  "xMin": 540,
+  "xMax": 900,
+  "yMin": 2000,
+  "yMax": 2480,
+  "pauseIntervalMin": 15000,
+  "pauseIntervalMax": 30000,
+  "pauseDurationMin": 1000,
+  "pauseDurationMax": 3000
+}
