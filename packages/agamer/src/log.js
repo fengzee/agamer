@@ -64,7 +64,7 @@ function initLogFile() {
   const logFile = path.join(logDir, `${timestamp}.log`);
   logStream = fs.createWriteStream(logFile, { flags: 'a' });
 
-  const startMessage = `[${formatTime()}] 日志文件已创建: ${logFile}\n`;
+  const startMessage = `[${formatTime()}] 日志文件已创建: ${logFile}`;
   logStream.write(startMessage);
   console.log(startMessage);
 
