@@ -1,12 +1,14 @@
 const { log } = require('./log');
 const { generateRandomValue } = require('./random');
 const { Shell } = require('fadb');
-const { COMMANDS, MESSAGES } = require('./constants');
+const { MESSAGES } = require('./constants');
+const Keyboard = require('./keyboard');
 
 class Controller {
   constructor(options) {
     this.options = options;
     this.shell = null;
+    this.keyboard = null;
     this.isManuallyPaused = false;
     this.currentTimeout = null;
     this.nextRestTime = null;
@@ -22,9 +24,9 @@ class Controller {
       this.quitSignal = resolve;
 
       this.initAdbShell();
-      this.setupKeyboardControl();
+      this.initKeyboard();
 
-      this.startClick();
+      this.start();
     });
   }
 
@@ -46,41 +48,12 @@ class Controller {
     this.shell.init();
   }
 
-  setupKeyboardControl() {
-    process.stdin.setRawMode(true);
-    process.stdin.resume();
-    process.stdin.setEncoding('utf8');
-
-    process.stdin.on('data', (key) => {
-      this.handleKeyPress(key);
-    });
+  initKeyboard() {
+    this.keyboard = new Keyboard(this);
+    this.keyboard.start();
   }
 
-  handleKeyPress(key) {
-    if (COMMANDS.PAUSE.includes(key)) {
-      this.handlePauseResume();
-    } else if (COMMANDS.RESUME.includes(key)) {
-      this.handleResume();
-    } else if (COMMANDS.QUIT.includes(key)) {
-      this.stop();
-    }
-  }
-
-  handlePauseResume() {
-    if (this.isManuallyPaused) {
-      this.resumeFromManualPause();
-    } else {
-      this.pauseManually();
-    }
-  }
-
-  handleResume() {
-    if (this.isManuallyPaused) {
-      this.resumeFromManualPause();
-    }
-  }
-
-  startClick() {
+  start() {
     this.scheduleNextRest();
 
     const initialDelay = generateRandomValue(this.options.dMin, this.options.dMax);
@@ -210,6 +183,11 @@ class Controller {
   }
 
   stop() {
+    if (this.keyboard) {
+      this.keyboard.stop();
+      this.keyboard = null;
+    }
+
     if (this.shell) {
       this.shell.cleanup();
       this.shell = null;
