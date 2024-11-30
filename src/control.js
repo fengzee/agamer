@@ -10,6 +10,9 @@ class Controller {
     this.nextRestTime = null;
     this.restTimeRemaining = null;
     this.pauseStartTime = null;
+    this.isDeviceDisconnected = false;
+    this.restPaused = false;
+    this.hasStarted = false;
   }
 
   setupKeyboardControl() {
@@ -51,6 +54,9 @@ class Controller {
       clearTimeout(this.currentTimeout);
       this.currentTimeout = null;
     }
+    if (adb.isConnected()) {
+      adb.tap(this.options.xMin, this.options.yMin);
+    }
     log('操作已手动暂停，按 p 或 r 继续');
   }
 
@@ -58,7 +64,7 @@ class Controller {
     this.isManuallyPaused = false;
     if (this.restTimeRemaining && this.restTimeRemaining > 0) {
       this.nextRestTime = Date.now() + this.restTimeRemaining;
-      log(`恢复自动休息计划，将在 ${this.restTimeRemaining} ms 后休息`);
+      log(`自动休息计划将在 ${this.restTimeRemaining} ms 后休息`);
     }
     this.restTimeRemaining = null;
     this.pauseStartTime = null;
@@ -88,6 +94,33 @@ class Controller {
     this.currentTimeout = setTimeout(() => {
       this.currentTimeout = null;
       
+      if (!adb.isConnected()) {
+        if (!this.restPaused) {
+          this.restPaused = true;
+          if (this.nextRestTime) {
+            this.restTimeRemaining = this.nextRestTime - Date.now();
+            this.nextRestTime = null;
+          }
+        }
+        this.scheduleNextClick(1000);
+        return;
+      }
+
+      if (!this.hasStarted) {
+        this.hasStarted = true;
+        this.executeNextClick(d);
+        return;
+      }
+
+      if (this.restPaused) {
+        this.restPaused = false;
+        if (this.restTimeRemaining && this.restTimeRemaining > 0) {
+          this.nextRestTime = Date.now() + this.restTimeRemaining;
+          log(`计划在 ${this.restTimeRemaining} ms 后自动休息`);
+          this.restTimeRemaining = null;
+        }
+      }
+      
       if (this.nextRestTime && Date.now() >= this.nextRestTime) {
         const restDuration = generateRandomValue(
           this.options.pauseDurationMin, 
@@ -109,7 +142,7 @@ class Controller {
     }, d);
   }
 
-  executeNextClick(d) {
+  async executeNextClick(d) {
     if (this.isManuallyPaused) return;
 
     const x = generateRandomValue(this.options.xMin, this.options.xMax);
@@ -117,9 +150,18 @@ class Controller {
     const nextD = this.options.dMax === 0 ? 
       0 : generateRandomValue(this.options.dMin, this.options.dMax);
 
-    adb.tap(x, y);
-    log(`点击坐标: (${x}, ${y}), 下次点击间隔: ${d} ms`);
+    const success = await adb.tap(x, y);
+    if (!success) {
+      if (!this.restPaused && this.nextRestTime) {
+        this.restPaused = true;
+        this.restTimeRemaining = this.nextRestTime - Date.now();
+        this.nextRestTime = null;
+      }
+      this.scheduleNextClick(1000);
+      return;
+    }
 
+    log(`点击坐标: (${x}, ${y}), 下次点击间隔: ${d} ms`);
     this.scheduleNextClick(nextD);
   }
 
