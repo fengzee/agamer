@@ -166,7 +166,7 @@ class Controller {
       return;
     }
 
-    log(`点击坐标: (${x}, ${y}), 下次点击间隔: ${d} ms`);
+    log(`点击坐标: (${x}, ${y})${d > 0 ? `, 下次点击间隔: ${d} ms` : ''}`);
     this.scheduleNextClick(nextD);
   }
 
