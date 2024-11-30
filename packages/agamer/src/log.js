@@ -73,13 +73,6 @@ function initLogFile() {
       logStream.end();
     }
   });
-
-  process.on('SIGINT', () => {
-    if (logStream) {
-      logStream.end();
-    }
-    process.exit(0);
-  });
 }
 
 function formatTime(date = new Date()) {
