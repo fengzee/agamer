@@ -60,6 +60,14 @@ class Controller {
     this.scheduleNextClick();
   }
 
+  togglePause() {
+    if (this.isManuallyPaused) {
+      this.resumeFromManualPause();
+    } else {
+      this.pauseManually();
+    }
+  }
+
   pauseManually() {
     this.isManuallyPaused = true;
     this.pauseStartTime = Date.now();
@@ -240,14 +248,6 @@ class Controller {
     if (this.quitSignal) {
       this.quitSignal();
       this.quitSignal = null;
-    }
-  }
-
-  togglePause() {
-    if (this.isManuallyPaused) {
-      this.resumeFromManualPause();
-    } else {
-      this.pauseManually();
     }
   }
 }
