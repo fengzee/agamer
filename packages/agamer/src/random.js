@@ -3,6 +3,9 @@ const random = require('random');
 const randomFunctionCache = {};
 
 function generateRandomValue(min, max) {
+  if (max === 0) {
+    return 0;
+  }
   const randomFunction = obtainRandomFunction(min, max);
   let value;
   do {

@@ -5,8 +5,8 @@
   "xMax": 900,
   "yMin": 2000,
   "yMax": 2480,
-  "pauseIntervalMin": 10000,
-  "pauseIntervalMax": 20000,
-  "pauseDurationMin": 1000,
-  "pauseDurationMax": 3000
+  "pauseIntervalMin": 20000,
+  "pauseIntervalMax": 30000,
+  "pauseDurationMin": 300,
+  "pauseDurationMax": 2000
 }

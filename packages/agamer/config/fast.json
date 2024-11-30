@@ -2,7 +2,7 @@
   "dMin": 10,
   "dMax": 80,
   "pauseIntervalMin": 15000,
-  "pauseIntervalMax": 30000,
-  "pauseDurationMin": 1000,
-  "pauseDurationMax": 2000
+  "pauseIntervalMax": 20000,
+  "pauseDurationMin": 100,
+  "pauseDurationMax": 1000
 }

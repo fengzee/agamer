@@ -19,10 +19,8 @@ class Controller {
   start() {
     this.initAdbShell();
     this.setupKeyboardControl();
-    this.scheduleNextRest();
-    const initialDelay = this.options.dMax === 0 ? 
-      0 : generateRandomValue(this.options.dMin, this.options.dMax);
-    this.scheduleNextClick(initialDelay);
+
+    this.startClick();
   }
 
   initAdbShell() {
@@ -65,7 +63,14 @@ class Controller {
     });
   }
 
-  async pauseManually() {
+  startClick() {
+    this.scheduleNextRest();
+
+    const initialDelay = generateRandomValue(this.options.dMin, this.options.dMax);
+    this.scheduleNextClick(initialDelay);
+  }
+
+  pauseManually() {
     this.isManuallyPaused = true;
     this.pauseStartTime = Date.now();
     if (this.nextRestTime) {
@@ -87,8 +92,7 @@ class Controller {
     this.restTimeRemaining = null;
     this.pauseStartTime = null;
     log('操作已继续');
-    const nextD = this.options.dMax === 0 ? 
-      0 : generateRandomValue(this.options.dMin, this.options.dMax);
+    const nextD = generateRandomValue(this.options.dMin, this.options.dMax);
     this.scheduleNextClick(nextD);
   }
 
