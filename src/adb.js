@@ -6,7 +6,7 @@ const DELAYS = {
   CONNECT_STABLE_CHECK: 500,   // 连接稳定性二次确认延迟
   HEARTBEAT_INTERVAL: 1000,    // 心跳检测间隔
   RECONNECT_INTERVAL: 3000,    // 断开后重连尝试间隔
-  TAP_INTERVAL: 15,            // 点击最小间隔
+  TAP_INTERVAL: 18,            // 点击最小间隔
 };
 
 // Shell 命令模板
