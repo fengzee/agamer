@@ -1,6 +1,7 @@
 const { log } = require('./log');
 const { generateRandomValue } = require('./random');
 const { Shell } = require('fadb');
+const { COMMANDS, MESSAGES } = require('./constants');
 
 class Controller {
   constructor(options) {
@@ -27,15 +28,15 @@ class Controller {
     this.shell = new Shell();
     
     this.shell.on('connected', () => {
-      log('adb shell 已连接');
+      log(MESSAGES.SHELL_CONNECTED);
     });
 
     this.shell.on('disconnected', () => {
-      log('adb 设备连接已断开，等待重连...');
+      log(MESSAGES.SHELL_DISCONNECTED);
     });
 
     this.shell.on('reconnecting', () => {
-      log('尝试重新连接...');
+      log(MESSAGES.SHELL_RECONNECTING);
     });
 
     this.shell.init();
@@ -47,20 +48,32 @@ class Controller {
     process.stdin.setEncoding('utf8');
 
     process.stdin.on('data', (key) => {
-      if (key === 'p' || key === 'P') {
-        if (this.isManuallyPaused) {
-          this.resumeFromManualPause();
-        } else {
-          this.pauseManually();
-        }
-      } else if (key === 'r' || key === 'R') {
-        if (this.isManuallyPaused) {
-          this.resumeFromManualPause();
-        }
-      } else if (key === '\u0003') { // Ctrl+C
-        this.cleanup();
-      }
+      this.handleKeyPress(key);
     });
+  }
+
+  handleKeyPress(key) {
+    if (COMMANDS.PAUSE.includes(key)) {
+      this.handlePauseResume();
+    } else if (COMMANDS.RESUME.includes(key)) {
+      this.handleResume();
+    } else if (COMMANDS.QUIT.includes(key)) {
+      this.cleanup();
+    }
+  }
+
+  handlePauseResume() {
+    if (this.isManuallyPaused) {
+      this.resumeFromManualPause();
+    } else {
+      this.pauseManually();
+    }
+  }
+
+  handleResume() {
+    if (this.isManuallyPaused) {
+      this.resumeFromManualPause();
+    }
   }
 
   startClick() {
@@ -80,18 +93,18 @@ class Controller {
       clearTimeout(this.currentTimeout);
       this.currentTimeout = null;
     }
-    log('操作已手动暂停，按 p 或 r 继续');
+    log(MESSAGES.PAUSED);
   }
 
   resumeFromManualPause() {
     this.isManuallyPaused = false;
     if (this.restTimeRemaining && this.restTimeRemaining > 0) {
       this.nextRestTime = Date.now() + this.restTimeRemaining;
-      log(`自动休息计划将在 ${this.restTimeRemaining} ms 后休息`);
+      log(MESSAGES.REST_PLAN(this.restTimeRemaining));
     }
     this.restTimeRemaining = null;
     this.pauseStartTime = null;
-    log('操作已继续');
+    log(MESSAGES.RESUMED);
     const nextD = generateRandomValue(this.options.dMin, this.options.dMax);
     this.scheduleNextClick(nextD);
   }
@@ -107,7 +120,7 @@ class Controller {
       this.options.pauseIntervalMax
     );
     this.nextRestTime = Date.now() + restInterval;
-    log(`计划在 ${restInterval} ms 后自动休息`);
+    log(MESSAGES.REST_PLAN(restInterval));
   }
 
   scheduleNextClick(d) {
@@ -138,7 +151,7 @@ class Controller {
         this.restPaused = false;
         if (this.restTimeRemaining && this.restTimeRemaining > 0) {
           this.nextRestTime = Date.now() + this.restTimeRemaining;
-          log(`计划在 ${this.restTimeRemaining} ms 后自动休息`);
+          log(MESSAGES.REST_PLAN(this.restTimeRemaining));
           this.restTimeRemaining = null;
         }
       }
@@ -148,7 +161,7 @@ class Controller {
           this.options.pauseDurationMin, 
           this.options.pauseDurationMax
         );
-        log(`开始自动休息 ${restDuration} ms`);
+        log(MESSAGES.REST_START(restDuration));
         
         this.currentTimeout = setTimeout(() => {
           this.currentTimeout = null;
@@ -188,7 +201,7 @@ class Controller {
       return;
     }
 
-    log(`点击坐标: (${x}, ${y})${d > 0 ? `, 下次点击间隔: ${d} ms` : ''}`);
+    log(MESSAGES.CLICK_INFO(x, y, d));
     this.scheduleNextClick(nextD);
   }
 
@@ -197,6 +210,7 @@ class Controller {
       this.shell.cleanup();
       this.shell = null;
     }
+    log(MESSAGES.QUIT);
     process.exit();
   }
 }
