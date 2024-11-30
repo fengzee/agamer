@@ -16,6 +16,8 @@ class Controller {
     this.pauseStartTime = null;
     this.isDeviceDisconnected = false;
     this.restPaused = false;
+    this.currentRestEndTime = null;
+    this.isInRest = false;
   }
 
   async run() {
@@ -61,13 +63,22 @@ class Controller {
   pauseManually() {
     this.isManuallyPaused = true;
     this.pauseStartTime = Date.now();
-    if (this.nextRestTime) {
-      this.restTimeRemaining = this.nextRestTime - Date.now();
-    }
+
     if (this.currentTimeout) {
       clearTimeout(this.currentTimeout);
       this.currentTimeout = null;
     }
+
+    if (this.currentRestEndTime) {
+      this.restTimeRemaining = this.currentRestEndTime - Date.now();
+      this.currentRestEndTime = null;
+      this.isInRest = true;
+    } else if (this.nextRestTime) {
+      this.restTimeRemaining = this.nextRestTime - Date.now();
+      this.nextRestTime = null;
+      this.isInRest = false;
+    }
+
     log(MESSAGES.PAUSED);
   }
 
@@ -75,14 +86,40 @@ class Controller {
     log(MESSAGES.RESUMED);
     this.isManuallyPaused = false;
 
-    if (this.restTimeRemaining && this.restTimeRemaining > 0) {
-      this.nextRestTime = Date.now() + this.restTimeRemaining;
-      log(MESSAGES.REST_PLAN(this.restTimeRemaining));
+    if (this.restTimeRemaining) {
+      if (this.isInRest) {
+        const originalRestEndTime = this.pauseStartTime + this.restTimeRemaining;
+        
+        if (Date.now() >= originalRestEndTime) {
+          this.restTimeRemaining = null;
+          this.currentRestEndTime = null;
+          this.isInRest = false;
+          this.scheduleNextRest();
+          this.scheduleNextClick();
+        } else {
+          const remainingRestTime = originalRestEndTime - Date.now();
+          this.currentRestEndTime = originalRestEndTime;
+          log(MESSAGES.REST_CONTINUE(remainingRestTime));
+          
+          this.currentTimeout = setTimeout(() => {
+            this.currentTimeout = null;
+            this.currentRestEndTime = null;
+            this.isInRest = false;
+            this.scheduleNextRest();
+            this.scheduleNextClick();
+          }, remainingRestTime);
+        }
+      } else {
+        this.nextRestTime = Date.now() + this.restTimeRemaining;
+        log(MESSAGES.REST_PLAN(this.restTimeRemaining));
+        this.scheduleNextClick();
+      }
+    } else {
+      this.scheduleNextClick();
     }
+
     this.restTimeRemaining = null;
     this.pauseStartTime = null;
-
-    this.scheduleNextClick();
   }
 
   scheduleNextRest() {
@@ -128,6 +165,17 @@ class Controller {
         }
       }
       
+      if (this.currentRestEndTime && Date.now() < this.currentRestEndTime) {
+        const remainingRestTime = this.currentRestEndTime - Date.now();
+        this.currentTimeout = setTimeout(() => {
+          this.currentTimeout = null;
+          this.currentRestEndTime = null;
+          this.scheduleNextRest();
+          this.scheduleNextClick();
+        }, remainingRestTime);
+        return;
+      }
+      
       if (this.nextRestTime && Date.now() >= this.nextRestTime) {
         const restDuration = generateRandomValue(
           this.options.pauseDurationMin, 
@@ -135,8 +183,12 @@ class Controller {
         );
         log(MESSAGES.REST_START(restDuration));
         
+        this.currentRestEndTime = Date.now() + restDuration;
+        this.isInRest = true;
         this.currentTimeout = setTimeout(() => {
           this.currentTimeout = null;
+          this.currentRestEndTime = null;
+          this.isInRest = false;
           this.scheduleNextRest();
           this.scheduleNextClick();
         }, restDuration);

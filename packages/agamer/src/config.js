@@ -58,19 +58,19 @@ function validateOptions(options) {
   ];
 
   for (const [min, max, name] of pairs) {
-    if (options[min] >= options[max]) {
-      error(`${name}配置错误：最小值 (${options[min]}) 必须小于最大值 (${options[max]}) `);
+    if (options[min] > options[max]) {
+      error(`${name}配置错误：最小值 (${options[min]}) 必须小于或等于最大值 (${options[max]}) `);
       process.exit(1);
     }
   }
 
-  if (options.dMax !== 0 && options.dMin >= options.dMax) {
-    error(`点击间隔配置错误：最小值 (${options.dMin}) 必须小于最大值 (${options.dMax}) `);
+  if (options.dMax !== 0 && options.dMin > options.dMax) {
+    error(`点击间隔配置错误：最小值 (${options.dMin}) 必须小于或等于最大值 (${options.dMax}) `);
     process.exit(1);
   }
 
-  if (options.pauseIntervalMax !== 0 && options.pauseIntervalMin >= options.pauseIntervalMax) {
-    error(`暂停间隔配置错误：最小值 (${options.pauseIntervalMin}) 必须小于最大值 (${options.pauseIntervalMax}) `);
+  if (options.pauseIntervalMax !== 0 && options.pauseIntervalMin > options.pauseIntervalMax) {
+    error(`暂停间隔配置错误：最小值 (${options.pauseIntervalMin}) 必须小于或等于最大值 (${options.pauseIntervalMax}) `);
     process.exit(1);
   }
 }

@@ -6,6 +6,11 @@ function generateRandomValue(min, max) {
   if (max === 0) {
     return 0;
   }
+  
+  if (min === max) {
+    return min;
+  }
+
   const randomFunction = obtainRandomFunction(min, max);
   let value;
   do {

@@ -18,7 +18,8 @@ const MESSAGES = {
   REST_PLAN: (ms) => `计划在 ${ms} ms 后自动休息`,
   REST_START: (ms) => `开始自动休息 ${ms} ms`,
   CLICK_INFO: (x, y, d) => `点击坐标: (${x}, ${y})${d > 0 ? `, 下次点击间隔: ${d} ms` : ''}`,
-  QUIT: '停止点击操作并退出'
+  QUIT: '停止点击操作并退出',
+  REST_CONTINUE: (ms) => `继续自动休息，剩余 ${ms} ms`
 };
 
 module.exports = {
