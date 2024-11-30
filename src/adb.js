@@ -1,33 +1,24 @@
 const { spawn } = require('child_process');
 const { log, error } = require('./log');
 
-// 命令和响应标记
-const SHELL_SIGNALS = {
-  READY: 'READY',
-  INPUT_INJECTED: 'Input events injected'
-};
-
 // 时间配置（毫秒）
 const DELAYS = {
   CONNECT_STABLE_CHECK: 500,   // 连接稳定性二次确认延迟
   HEARTBEAT_INTERVAL: 1000,    // 心跳检测间隔
   RECONNECT_INTERVAL: 3000,    // 断开后重连尝试间隔
-  COMMAND_TIMEOUT: 5000        // 命令执行超时时间
+  TAP_INTERVAL: 15,            // 点击最小间隔
 };
 
 // Shell 命令模板
 const SHELL_COMMANDS = {
-  HEARTBEAT: `echo "${SHELL_SIGNALS.READY}"\n`,
-  TAP: (x, y) => `input tap ${x} ${y} && echo "${SHELL_SIGNALS.READY}"\n`
+  HEARTBEAT: 'echo 1\n',
+  TAP: (x, y) => `input tap ${x} ${y}\n`
 };
 
 let adbProcess = null;
 let heartbeatInterval = null;
 let isConnected = false;
 let reconnectInterval = null;
-let commandQueue = [];
-let isProcessing = false;
-let currentCommand = null;
 
 function init() {
   connect();
@@ -42,15 +33,12 @@ function connect() {
 
   adbProcess = spawn('adb', ['shell']);
   
-  adbProcess.stdout.on('data', handleShellOutput);
-  adbProcess.stderr.on('data', handleShellError);
   adbProcess.on('error', handleDisconnect);
   adbProcess.on('close', handleDisconnect);
 
   // 发送测试命令验证连接
   adbProcess.stdin.write(SHELL_COMMANDS.HEARTBEAT, (err) => {
     if (!err) {
-      // 等待一段时间后进行二次确认
       setTimeout(() => {
         if (adbProcess && !adbProcess.killed) {
           adbProcess.stdin.write(SHELL_COMMANDS.HEARTBEAT, (err) => {
@@ -69,30 +57,6 @@ function connect() {
   });
 }
 
-function handleShellOutput(data) {
-  const output = data.toString().trim();
-  if (output === SHELL_SIGNALS.READY || output.includes(SHELL_SIGNALS.INPUT_INJECTED)) {
-    if (currentCommand && isProcessing) {
-      const { callback } = currentCommand;
-      currentCommand = null;
-      callback(true);
-      isProcessing = false;
-      processQueue();
-    }
-  }
-}
-
-function handleShellError(data) {
-  const error = data.toString().trim();
-  if (currentCommand && isProcessing) {
-    const { callback } = currentCommand;
-    currentCommand = null;
-    callback(false);
-    isProcessing = false;
-    processQueue();
-  }
-}
-
 function handleDisconnect() {
   if (isConnected) {
     error('adb 设备连接已断开，等待重连...');
@@ -103,13 +67,6 @@ function handleDisconnect() {
     adbProcess.kill();
     adbProcess = null;
   }
-
-  if (currentCommand) {
-    currentCommand.callback(false);
-    currentCommand = null;
-  }
-  isProcessing = false;
-  commandQueue = [];
 
   if (!reconnectInterval) {
     reconnectInterval = setInterval(() => {
@@ -148,45 +105,17 @@ function tap(x, y) {
       return;
     }
 
-    const timeout = setTimeout(() => {
-      if (currentCommand && currentCommand.callback === resolve) {
-        error('点击命令执行超时');
-        currentCommand = null;
-        isProcessing = false;
+    adbProcess.stdin.write(SHELL_COMMANDS.TAP(x, y), (err) => {
+      if (err) {
+        error('发送点击命令失败');
+        handleDisconnect();
         resolve(false);
-        processQueue();
+        return;
       }
-    }, DELAYS.COMMAND_TIMEOUT);
-
-    const command = {
-      input: SHELL_COMMANDS.TAP(x, y),
-      callback: (success) => {
-        clearTimeout(timeout);
-        resolve(success);
-      }
-    };
-    
-    commandQueue.push(command);
-    processQueue();
-  });
-}
-
-function processQueue() {
-  if (isProcessing || commandQueue.length === 0 || !isConnected || currentCommand) {
-    return;
-  }
-
-  isProcessing = true;
-  currentCommand = commandQueue.shift();
-
-  adbProcess.stdin.write(currentCommand.input, (err) => {
-    if (err) {
-      error('发送点击命令失败');
-      handleDisconnect();
-      currentCommand.callback(false);
-      currentCommand = null;
-      isProcessing = false;
-    }
+      
+      // 强制等待一个最小间隔，避免命令积压
+      setTimeout(() => resolve(true), DELAYS.TAP_INTERVAL);
+    });
   });
 }
 
@@ -205,10 +134,6 @@ function cleanup() {
     adbProcess.kill();
     adbProcess = null;
   }
-
-  commandQueue = [];
-  isProcessing = false;
-  currentCommand = null;
 }
 
 module.exports = {

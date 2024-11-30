@@ -44,7 +44,7 @@ class Controller {
     this.scheduleNextClick(initialDelay);
   }
 
-  pauseManually() {
+  async pauseManually() {
     this.isManuallyPaused = true;
     this.pauseStartTime = Date.now();
     if (this.nextRestTime) {
@@ -55,7 +55,7 @@ class Controller {
       this.currentTimeout = null;
     }
     if (adb.isConnected()) {
-      adb.tap(this.options.xMin, this.options.yMin);
+      await adb.tap(this.options.xMin, this.options.yMin);
     }
     log('操作已手动暂停，按 p 或 r 继续');
   }
@@ -150,7 +150,12 @@ class Controller {
     const nextD = this.options.dMax === 0 ? 
       0 : generateRandomValue(this.options.dMin, this.options.dMax);
 
+    if (this.isManuallyPaused) return;
+
     const success = await adb.tap(x, y);
+
+    if (this.isManuallyPaused) return;
+
     if (!success) {
       if (!this.restPaused && this.nextRestTime) {
         this.restPaused = true;
