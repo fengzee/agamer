@@ -54,9 +54,6 @@ class Controller {
       clearTimeout(this.currentTimeout);
       this.currentTimeout = null;
     }
-    if (adb.isConnected()) {
-      await adb.tap(this.options.xMin, this.options.yMin);
-    }
     log('操作已手动暂停，按 p 或 r 继续');
   }
 
