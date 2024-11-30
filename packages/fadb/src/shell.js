@@ -10,7 +10,7 @@ const DELAYS = {
 };
 
 const COMMANDS = {
-  ECHO: 'echo 1',
+  HEARTBEAT: 'echo 1',
   TAP: (x, y) => `input tap ${x} ${y}`,
   GET_SCREEN_SIZE: 'wm size'
 };
@@ -112,11 +112,11 @@ class Shell extends EventEmitter {
     this.process.on('error', () => this._handleDisconnect());
     this.process.on('close', () => this._handleDisconnect());
 
-    this.process.stdin.write(`${COMMANDS.ECHO}\n`, (err) => {
+    this.process.stdin.write(`${COMMANDS.HEARTBEAT}\n`, (err) => {
       if (!err) {
         setTimeout(() => {
           if (this.process && !this.process.killed) {
-            this.process.stdin.write(`${COMMANDS.ECHO}\n`, (err) => {
+            this.process.stdin.write(`${COMMANDS.HEARTBEAT}\n`, (err) => {
               if (!err) {
                 this.isConnected = true;
                 this.emit('connected');
@@ -164,7 +164,7 @@ class Shell extends EventEmitter {
         return;
       }
 
-      this.process.stdin.write(`${COMMANDS.ECHO}\n`, (err) => {
+      this.process.stdin.write(`${COMMANDS.HEARTBEAT}\n`, (err) => {
         if (err) {
           this._handleDisconnect();
         }
