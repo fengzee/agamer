@@ -52,10 +52,8 @@ function setupCommandLine() {
 
 function validateOptions(options) {
   const pairs = [
-    ['dMin', 'dMax', '点击间隔'],
     ['xMin', 'xMax', 'X 坐标范围'],
     ['yMin', 'yMax', 'Y 坐标范围'],
-    ['pauseIntervalMin', 'pauseIntervalMax', '暂停间隔'],
     ['pauseDurationMin', 'pauseDurationMax', '暂停时长']
   ];
 
@@ -64,6 +62,16 @@ function validateOptions(options) {
       error(`${name}配置错误：最小值 (${options[min]}) 必须小于最大值 (${options[max]}) `);
       process.exit(1);
     }
+  }
+
+  if (options.dMax !== 0 && options.dMin >= options.dMax) {
+    error(`点击间隔配置错误：最小值 (${options.dMin}) 必须小于最大值 (${options.dMax}) `);
+    process.exit(1);
+  }
+
+  if (options.pauseIntervalMax !== 0 && options.pauseIntervalMin >= options.pauseIntervalMax) {
+    error(`暂停间隔配置错误：最小值 (${options.pauseIntervalMin}) 必须小于最大值 (${options.pauseIntervalMax}) `);
+    process.exit(1);
   }
 }
 
@@ -85,4 +93,4 @@ function loadConfig(configPath) {
 
 module.exports = {
   getOptions
-}; 
+};
