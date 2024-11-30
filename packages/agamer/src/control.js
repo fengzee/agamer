@@ -17,11 +17,15 @@ class Controller {
     this.hasStarted = false;
   }
 
-  start() {
-    this.initAdbShell();
-    this.setupKeyboardControl();
+  async run() {
+    return new Promise((resolve) => {
+      this.quitSignal = resolve;
 
-    this.startClick();
+      this.initAdbShell();
+      this.setupKeyboardControl();
+
+      this.startClick();
+    });
   }
 
   initAdbShell() {
@@ -58,7 +62,7 @@ class Controller {
     } else if (COMMANDS.RESUME.includes(key)) {
       this.handleResume();
     } else if (COMMANDS.QUIT.includes(key)) {
-      this.cleanup();
+      this.stop();
     }
   }
 
@@ -205,13 +209,16 @@ class Controller {
     this.scheduleNextClick(nextD);
   }
 
-  cleanup() {
+  stop() {
     if (this.shell) {
       this.shell.cleanup();
       this.shell = null;
     }
-    log(MESSAGES.QUIT);
-    process.exit();
+
+    if (this.quitSignal) {
+      this.quitSignal();
+      this.quitSignal = null;
+    }
   }
 }
 
