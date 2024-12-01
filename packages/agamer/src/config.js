@@ -35,6 +35,7 @@ function setupCommandLine() {
   program
     .name('agamer')
     .description('Auto gamer with configurable click intervals and positions')
+    .option('-t, --task [name]', '执行的任务')
     .option('-c, --config <path>', '使用指定的配置文件')
     .option('-di, --d-min <number>', '最小点击间隔 (ms)', parseInt)
     .option('-da, --d-max <number>', '最大点击间隔 (ms)', parseInt)
