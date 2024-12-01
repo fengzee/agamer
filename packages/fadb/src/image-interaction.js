@@ -3,6 +3,7 @@ const EventEmitter = require('events');
 const Shell = require('./shell');
 const Screencap = require('./screencap');
 const Tesseract = require('tesseract.js');
+const Logger = require('flog');
 
 const DELAYS = {
   COMMAND_INTERVAL: 18,
@@ -15,13 +16,18 @@ class ImageInteraction extends EventEmitter {
     this.shell = new Shell();
     this.screencap = new Screencap();
     this._worker = null;
+    this.logger = Logger.with({ appName: 'agamer' });
   }
 
   async init() {
+    this.logger.log('初始化 OCR 引擎...');
     this._worker = await Tesseract.createWorker('chi_sim');
     await this.shell.init();
     return new Promise((resolve) => {
-      this.shell.on('connected', () => resolve(true));
+      this.shell.on('connected', () => {
+        this.logger.log('ImageInteraction 初始化完成');
+        resolve(true);
+      });
     });
   }
 
@@ -35,37 +41,37 @@ class ImageInteraction extends EventEmitter {
    */
   async tapText(text, options = {}) {
     const { confidence = 0.7, timeout = DELAYS.OCR_TIMEOUT } = options;
+    this.logger.log(`尝试查找并点击文字: "${text}" (置信度 >= ${confidence})`);
 
     try {
-      // 截图
       const screenshot = await this.screencap.capture();
+      this.logger.log('已获取屏幕截图');
       
-      // OCR识别
-      const result = await this._worker.recognize(screenshot, {
-        timeout,
-      });
+      const result = await this._worker.recognize(screenshot, { timeout });
+      this.logger.log(`OCR 识别完成，找到 ${result.data.words.length} 个词汇：${
+        result.data.words.map(word => word.text).join(', ')
+      }`);
 
-      // 查找文字位置
       for (const word of result.data.words) {
         if (word.text.includes(text) && word.confidence >= confidence) {
           const { x0, y0, x1, y1 } = word.bbox;
-          // 计算文字中心点
           const x = Math.floor((x0 + x1) / 2);
           const y = Math.floor((y0 + y1) / 2);
           
-          // 点击
-          const success = await this.shell.tap(x, y);
-          if (success) {
-            this.emit('tap', { text, x, y, confidence: word.confidence });
-            return true;
-          }
+          this.logger.log(`找到匹配文字: "${word.text}", 置信度: ${word.confidence}, 位置: (${x}, ${y})`);
+          
+          await this.shell.tap(x, y);
+          this.emit('tap', { text, x, y, confidence: word.confidence });
+          return;
         }
       }
 
+      this.logger.log(`未找到文字: "${text}"`);
       this.emit('notFound', { text });
       return false;
 
     } catch (error) {
+      this.logger.error('操作失败:', error);
       this.emit('error', error);
       return false;
     }
@@ -109,6 +115,7 @@ class ImageInteraction extends EventEmitter {
   }
 
   async cleanup() {
+    this.logger.log('清理资源...');
     if (this._worker) {
       await this._worker.terminate();
       this._worker = null;
@@ -117,6 +124,7 @@ class ImageInteraction extends EventEmitter {
       this.shell.cleanup();
       this.shell = null;
     }
+    this.logger.cleanup();
   }
 }
 

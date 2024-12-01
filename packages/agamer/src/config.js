@@ -1,7 +1,9 @@
 const path = require('path');
 const fs = require('fs');
 const { program } = require('commander');
-const { error } = require('./log');
+const Logger = require('flog');
+
+const logger = Logger.with({ appName: 'agamer' });
 
 function getOptions() {
   setupCommandLine();
@@ -60,18 +62,24 @@ function validateOptions(options) {
 
   for (const [min, max, name] of pairs) {
     if (options[min] > options[max]) {
-      error(`${name}配置错误：最小值 (${options[min]}) 必须小于或等于最大值 (${options[max]}) `);
+      logger.error(
+        `${name}配置错误：最小值 (${options[min]}) 必须小于或等于最大值 (${options[max]}) `
+      );
       process.exit(1);
     }
   }
 
   if (options.dMax !== 0 && options.dMin > options.dMax) {
-    error(`点击间隔配置错误：最小值 (${options.dMin}) 必须小于或等于最大值 (${options.dMax}) `);
+    logger.error(
+      `点击间隔配置错误：最小值 (${options.dMin}) 必须小于或等于最大值 (${options.dMax}) `
+    );
     process.exit(1);
   }
 
   if (options.pauseIntervalMax !== 0 && options.pauseIntervalMin > options.pauseIntervalMax) {
-    error(`暂停间隔配置错误：最小值 (${options.pauseIntervalMin}) 必须小于或等于最大值 (${options.pauseIntervalMax}) `);
+    logger.error(
+      `暂停间隔配置错误：最小值 (${options.pauseIntervalMin}) 必须小于或等于最大值 (${options.pauseIntervalMax}) `
+    );
     process.exit(1);
   }
 }
@@ -82,12 +90,12 @@ function loadConfig(configPath) {
     const fullPath = path.resolve(rootDir, configPath);
     
     if (!fs.existsSync(fullPath)) {
-      error(`配置文件不存在: ${fullPath}`);
+      logger.error(`配置文件不存在: ${fullPath}`);
       process.exit(1);
     }
     return JSON.parse(fs.readFileSync(fullPath, 'utf8'));
   } catch (err) {
-    error(`读取配置文件失败: ${err.message}`);
+    logger.error(`读取配置文件失败: ${err.message}`);
     process.exit(1);
   }
 }

@@ -3,6 +3,7 @@
   "version": "0.1.0",
   "main": "src/index.js",
   "dependencies": {
+    "flog": "^0.1.0",
     "events": "^3.3.0",
     "tesseract.js": "^5.1.1"
   },

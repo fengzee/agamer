@@ -1,8 +1,10 @@
-const { log } = require('./log');
+const Logger = require('flog');
 const { generateRandomValue } = require('./random');
 const { Shell } = require('fadb');
 const { MESSAGES, DELAYS } = require('./constants');
 const Keyboard = require('./keyboard');
+
+const logger = Logger.with({ appName: 'agamer' });
 
 class Controller {
   constructor(options) {
@@ -33,12 +35,12 @@ class Controller {
     this.shell = new Shell();
     
     this.shell.on('connected', async () => {
-      log(MESSAGES.SHELL_CONNECTED);
+      logger.log(MESSAGES.SHELL_CONNECTED);
       
       if (!this.currentTimeout) {
         const screenSize = await this.shell.getScreenSize();
         if (screenSize) {
-          log(MESSAGES.SCREEN_SIZE(screenSize.width, screenSize.height));
+          logger.log(MESSAGES.SCREEN_SIZE(screenSize.width, screenSize.height));
         }
 
         this.start();
@@ -46,11 +48,11 @@ class Controller {
     });
 
     this.shell.on('disconnected', () => {
-      log(MESSAGES.SHELL_DISCONNECTED);
+      logger.log(MESSAGES.SHELL_DISCONNECTED);
     });
 
     this.shell.on('reconnecting', () => {
-      log(MESSAGES.SHELL_RECONNECTING);
+      logger.log(MESSAGES.SHELL_RECONNECTING);
     });
 
     this.shell.init();
@@ -93,11 +95,11 @@ class Controller {
       this.isInRest = false;
     }
 
-    log(MESSAGES.PAUSED);
+    logger.log(MESSAGES.PAUSED);
   }
 
   resumeFromManualPause() {
-    log(MESSAGES.RESUMED);
+    logger.log(MESSAGES.RESUMED);
     this.isManuallyPaused = false;
 
     if (this.restTimeRemaining) {
@@ -113,7 +115,7 @@ class Controller {
         } else {
           const remainingRestTime = originalRestEndTime - Date.now();
           this.currentRestEndTime = originalRestEndTime;
-          log(MESSAGES.REST_CONTINUE(remainingRestTime));
+          logger.log(MESSAGES.REST_CONTINUE(remainingRestTime));
           
           this.currentTimeout = setTimeout(() => {
             this.currentTimeout = null;
@@ -125,7 +127,7 @@ class Controller {
         }
       } else {
         this.nextRestTime = Date.now() + this.restTimeRemaining;
-        log(MESSAGES.REST_PLAN(this.restTimeRemaining));
+        logger.log(MESSAGES.REST_PLAN(this.restTimeRemaining));
         this.scheduleNextClick();
       }
     } else {
@@ -147,7 +149,7 @@ class Controller {
       this.options.pauseIntervalMax
     );
     this.nextRestTime = Date.now() + restInterval;
-    log(MESSAGES.REST_PLAN(restInterval));
+    logger.log(MESSAGES.REST_PLAN(restInterval));
   }
 
   scheduleNextClick(delay = null) {
@@ -174,7 +176,7 @@ class Controller {
         this.restPaused = false;
         if (this.restTimeRemaining && this.restTimeRemaining > 0) {
           this.nextRestTime = Date.now() + this.restTimeRemaining;
-          log(MESSAGES.REST_PLAN(this.restTimeRemaining));
+          logger.log(MESSAGES.REST_PLAN(this.restTimeRemaining));
           this.restTimeRemaining = null;
         }
       }
@@ -195,7 +197,7 @@ class Controller {
           this.options.pauseDurationMin, 
           this.options.pauseDurationMax
         );
-        log(MESSAGES.REST_START(restDuration));
+        logger.log(MESSAGES.REST_START(restDuration));
         
         this.currentRestEndTime = Date.now() + restDuration;
         this.isInRest = true;
@@ -236,7 +238,7 @@ class Controller {
       return;
     }
 
-    log(MESSAGES.CLICK_INFO(x, y, delay));
+    logger.log(MESSAGES.CLICK_INFO(x, y, delay));
     this.scheduleNextClick();
   }
 

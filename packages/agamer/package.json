@@ -12,6 +12,7 @@
   "dependencies": {
     "commander": "^12.0.0",
     "fadb": "^0.1.0",
+    "flog": "^0.1.0",
     "random": "^3.0.6"
   }
 } 
