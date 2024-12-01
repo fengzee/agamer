@@ -48,8 +48,8 @@ class ImageInteraction extends EventEmitter {
       this.logger.log('已获取屏幕截图');
       
       const result = await this._worker.recognize(screenshot, { timeout });
-      this.logger.log(`OCR 识别完成，找到 ${result.data.words.length} 个词汇：${
-        result.data.words.map(word => word.text).join(', ')
+      this.logger.log(`OCR 识别完成，找到 ${result.data.words.length} 个词汇：\n${
+        result.data.words.map(word => `  ${word.text} (${word.confidence})`).join('\n')
       }`);
 
       for (const word of result.data.words) {
