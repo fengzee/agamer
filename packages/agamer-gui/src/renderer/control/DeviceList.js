@@ -1,7 +1,7 @@
 /**
  * 设备列表管理类，处理设备列表的显示和选择
  */
-export class DeviceListManager {
+export class DeviceList {
   constructor(containerId, deviceManager) {
     this.container = document.getElementById(containerId);
     this.deviceManager = deviceManager;

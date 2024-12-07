@@ -189,6 +189,14 @@
       align-items: center;
       gap: 8px;
     }
+
+    #toggle-click.active {
+      background-color: #dc3545;
+    }
+    
+    #toggle-click.active:hover {
+      background-color: #c82333;
+    }
   </style>
 </head>
 <body>
@@ -201,6 +209,7 @@
             <div class="spinner"></div>
           </button>
         </div>
+        <button id="toggle-click">开始点击</button>
         <div id="screen-dimensions"></div>
       </div>
       <canvas id="screen"></canvas>
@@ -216,6 +225,6 @@
       <div class="divider"></div>
     </div>
   </div>
-  <script type="module" src="../src/renderer.js"></script>
+  <script type="module" src="../src/renderer/renderer.js"></script>
 </body>
 </html>

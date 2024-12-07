@@ -1,7 +1,7 @@
 /**
  * 按钮状态管理类，处理按钮的加载状态和禁用状态
  */
-export class ButtonStateManager {
+export class Button {
   constructor(buttonId) {
     this.button = document.querySelector(`#${buttonId}`);
     this.container = this.button.parentElement;
