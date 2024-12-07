@@ -1,11 +1,9 @@
 {
   "name": "agamer-monorepo",
   "private": true,
-  "workspaces": [
-    "packages/*"
-  ],
   "scripts": {
-    "start": "yarn workspace agamer start",
-    "postinstall": "yarn workspace agamer link"
+    "start": "cd packages/agamer-gui && npm run start",
+    "postinstall": "npm run build-all",
+    "build-all": "cd packages/fadb && npm install && cd ../flog && npm install && cd ../agamer && npm install && cd ../agamer-gui && npm install"
   }
 }
