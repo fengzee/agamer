@@ -3,10 +3,14 @@ const path = require('path');
 
 function createWindow() {
   const win = new BrowserWindow({
-    width: 1024,
-    height: 768,
+    width: 1200,
+    height: 850,
+    resizable: false,
     webPreferences: {
-      preload: path.join(__dirname, 'renderer.js'),
+      nodeIntegration: true,
+      contextIsolation: true,
+      preload: path.join(__dirname, 'preload.js'),
+      enableRemoteModule: true
     },
   });
 

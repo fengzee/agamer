@@ -8,7 +8,6 @@
     "postinstall": "electron-builder install-app-deps"
   },
   "dependencies": {
-    "agamer": "file:../agamer",
     "fadb": "file:../fadb",
     "flog": "file:../flog"
   },
