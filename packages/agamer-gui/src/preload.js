@@ -9,6 +9,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
     tap: (deviceSerial, x, y) => deviceManager.tap(deviceSerial, x, y),
     getDevices: () => deviceManager.getDevices(),
     setDevice: (serial) => deviceManager.setDevice(serial),
+    sendKeyEvent: (deviceSerial, keycode) => deviceManager.sendKeyEvent(deviceSerial, keycode),
   },
   screencap: {
     capture: () => screencap.capture()

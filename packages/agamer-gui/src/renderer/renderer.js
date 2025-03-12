@@ -74,6 +74,26 @@ screen.canvas.addEventListener('areaSelected', (event) => {
   console.log('选择区域:', selectedArea);
 });
 
+// 监听单击事件
+screen.canvas.addEventListener('singleClick', async (event) => {
+  const { x, y } = event.detail;
+  console.log(`单击坐标: (${x}, ${y})`);
+  
+  if (deviceList.currentDevice) {
+    await deviceManager.tap(deviceList.currentDevice, x, y);
+  }
+});
+
+// 监听键盘事件
+screen.canvas.addEventListener('keyEvent', async (event) => {
+  const { keycode } = event.detail;
+  console.log(`发送键盘事件: ${keycode}`);
+  
+  if (deviceList.currentDevice) {
+    await deviceManager.sendKeyEvent(deviceList.currentDevice, keycode);
+  }
+});
+
 // 添加开始/停止按钮事件监听
 document.getElementById('toggle-click').addEventListener('click', () => {
   const button = document.getElementById('toggle-click');

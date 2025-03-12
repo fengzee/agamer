@@ -12,7 +12,8 @@ const DELAYS = {
 const COMMANDS = {
   HEARTBEAT: 'echo 1',
   TAP: (x, y) => `input tap ${x} ${y}`,
-  GET_SCREEN_SIZE: 'wm size'
+  GET_SCREEN_SIZE: 'wm size',
+  KEY_EVENT: (keycode) => `input keyevent ${keycode}`
 };
 
 /**
@@ -50,6 +51,31 @@ class Shell extends EventEmitter {
       }
 
       this.process.stdin.write(`${COMMANDS.TAP(x, y)}\n`, (err) => {
+        if (err) {
+          this._handleDisconnect();
+          resolve(false);
+          return;
+        }
+        
+        setTimeout(() => resolve(true), DELAYS.COMMAND_INTERVAL);
+      });
+    });
+  }
+
+  /**
+   * 发送键盘事件
+   *
+   * @param {string} keycode - Android 键码，如 KEYCODE_HOME, KEYCODE_BACK 等
+   * @returns {Promise<boolean>} 是否成功发送键盘事件
+   */
+  async sendKeyEvent(keycode) {
+    return new Promise((resolve) => {
+      if (!this.isConnected) {
+        resolve(false);
+        return;
+      }
+
+      this.process.stdin.write(`${COMMANDS.KEY_EVENT(keycode)}\n`, (err) => {
         if (err) {
           this._handleDisconnect();
           resolve(false);

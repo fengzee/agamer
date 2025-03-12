@@ -54,6 +54,12 @@ class DeviceManager {
     const shell = await this.getShell(deviceSerial);
     return shell.tap(x, y);
   }
+
+  // 发送键盘事件
+  async sendKeyEvent(deviceSerial, keycode) {
+    const shell = await this.getShell(deviceSerial);
+    return shell.sendKeyEvent(keycode);
+  }
 }
 
 module.exports = DeviceManager; 
