@@ -7,6 +7,8 @@ export class Screen {
     this.ctx = this.canvas.getContext('2d');
     this.screencap = screencap;
     this.dimensionsElement = document.getElementById('screen-dimensions');
+    this.statusDot = document.getElementById('screen-status');
+    this.statusText = document.getElementById('screen-status-text');
     
     // 添加框选相关属性
     this.isDrawing = false;
@@ -22,6 +24,13 @@ export class Screen {
     // 添加点击阈值，如果移动距离小于此值认为是点击而非框选
     this.clickThreshold = 5;
     
+    // 添加实时屏幕捕获相关属性
+    this.isLiveCapturing = false;
+    this.currentDeviceSerial = null;
+    this.frameCount = 0;
+    this.lastFrameTime = 0;
+    this.fps = 0;
+    
     // 添加硬件按钮相关属性
     this.hardwareButtons = [
       { id: 'btn-back', text: '返回', keycode: 'KEYCODE_BACK' },
@@ -30,11 +39,53 @@ export class Screen {
       { id: 'btn-power', text: '电源', keycode: 'KEYCODE_POWER' }
     ];
     
+    // 设置初始状态
+    this._updateStatus('disconnected');
+    
+    // 初始化事件监听器
+    this._initEventListeners();
+    
     // 绑定鼠标事件
     this._initDragEvents();
     
     // 创建硬件按钮
     this._createHardwareButtons();
+  }
+  
+  /**
+   * 初始化屏幕捕获事件监听器
+   */
+  _initEventListeners() {
+    // 监听屏幕帧事件
+    window.addEventListener('screencap-frame', async (event) => {
+      if (this.isLiveCapturing) {
+        const { imageBuffer } = event.detail;
+        try {
+          const image = await this._loadImage(imageBuffer);
+          this._displayImage(image);
+          
+          // 计算并显示 FPS
+          this.frameCount++;
+          const now = performance.now();
+          const elapsed = now - this.lastFrameTime;
+          
+          if (elapsed >= 1000) {
+            this.fps = Math.round((this.frameCount * 1000) / elapsed);
+            this.frameCount = 0;
+            this.lastFrameTime = now;
+            this._updateStatus('connected');
+          }
+        } catch (err) {
+          console.error('处理屏幕截图出错:', err);
+        }
+      }
+    });
+    
+    // 监听屏幕捕获错误事件
+    window.addEventListener('screencap-error', (event) => {
+      console.error('屏幕捕获错误:', event.detail.error);
+      this._updateStatus('error');
+    });
   }
 
   async captureAndDisplay() {
@@ -43,6 +94,63 @@ export class Screen {
     const imageBuffer = await this.screencap.capture();
     const image = await this._loadImage(imageBuffer);
     this._displayImage(image);
+  }
+  
+  /**
+   * 开始实时屏幕捕获
+   * @param {string} deviceSerial 设备序列号
+   */
+  startLiveCapture(deviceSerial) {
+    if (this.isLiveCapturing) {
+      this.stopLiveCapture();
+    }
+    
+    this.currentDeviceSerial = deviceSerial;
+    this.isLiveCapturing = true;
+    this.frameCount = 0;
+    this.lastFrameTime = performance.now();
+    this._updateStatus('connecting');
+    
+    // 通过 IPC 开始屏幕捕获
+    this.screencap.startLiveCapture(deviceSerial);
+  }
+  
+  /**
+   * 停止实时屏幕捕获
+   */
+  stopLiveCapture() {
+    if (this.isLiveCapturing) {
+      this.screencap.stopLiveCapture();
+      this.isLiveCapturing = false;
+      this._updateStatus('disconnected');
+    }
+  }
+  
+  /**
+   * 更新状态显示
+   * @param {'disconnected'|'connecting'|'connected'|'error'} status 
+   */
+  _updateStatus(status) {
+    if (!this.statusDot || !this.statusText) return;
+    
+    this.statusDot.className = 'status-dot';
+    
+    switch (status) {
+      case 'disconnected':
+        this.statusText.textContent = '等待连接';
+        break;
+      case 'connecting':
+        this.statusText.textContent = '正在连接...';
+        break;
+      case 'connected':
+        this.statusDot.classList.add('connected');
+        this.statusText.textContent = `捕获中 (${this.fps} FPS)`;
+        break;
+      case 'error':
+        this.statusText.textContent = '连接错误';
+        this.statusDot.style.backgroundColor = '#ff4d4f';
+        break;
+    }
   }
 
   async _loadImage(imageBuffer) {

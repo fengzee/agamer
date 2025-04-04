@@ -197,20 +197,37 @@
     #toggle-click.active:hover {
       background-color: #c82333;
     }
+    
+    .status-indicator {
+      display: inline-flex;
+      align-items: center;
+      font-size: 14px;
+      color: #666;
+      gap: 6px;
+    }
+    
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background-color: #ccc;
+    }
+    
+    .status-dot.connected {
+      background-color: #52c41a;
+    }
   </style>
 </head>
 <body>
   <div class="container">
     <div class="screen-container">
       <div class="buttons-row">
-        <div class="button-with-spinner">
-          <button id="refresh-screen">
-            <span class="button-text">刷新屏幕</span>
-            <div class="spinner"></div>
-          </button>
-        </div>
         <button id="toggle-click">开始点击</button>
-        <div id="screen-dimensions"></div>
+        <div class="status-indicator">
+          <div class="status-dot" id="screen-status"></div>
+          <span id="screen-status-text">等待连接</span>
+        </div>
+        <span id="screen-dimensions"></span>
       </div>
       <canvas id="screen"></canvas>
     </div>

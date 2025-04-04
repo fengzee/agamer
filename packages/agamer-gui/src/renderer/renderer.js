@@ -9,26 +9,17 @@ const { deviceManager, screencap } = window.electronAPI;
 const screen = new Screen('screen', screencap);
 const deviceList = new DeviceList('devices', deviceManager);
 const refreshDevicesBtn = new Button('refresh-devices');
-const refreshScreenBtn = new Button('refresh-screen');
 
 // 设置设备选择回调
 deviceList.setOnDeviceSelected(async (deviceSerial) => {
   if (deviceSerial) {
-    await captureScreen();
+    // 开始实时屏幕捕获
+    screen.startLiveCapture(deviceSerial);
+  } else {
+    // 如果没有选择设备，停止捕获
+    screen.stopLiveCapture();
   }
 });
-
-// 屏幕刷新处理
-async function captureScreen() {
-  if (!deviceList.currentDevice) {
-    console.log('请先选择一个设备');
-    return;
-  }
-
-  await refreshScreenBtn.wrapOperation(async () => {
-    await screen.captureAndDisplay();
-  });
-}
 
 // 设备列表刷新处理
 async function updateDeviceList() {
@@ -39,7 +30,6 @@ async function updateDeviceList() {
 
 // 事件监听
 document.getElementById('refresh-devices').addEventListener('click', updateDeviceList);
-document.getElementById('refresh-screen').addEventListener('click', captureScreen);
 
 // 添加键盘快捷键支持
 document.addEventListener('keydown', async (event) => {
@@ -51,10 +41,6 @@ document.addEventListener('keydown', async (event) => {
       case 'd':
         event.preventDefault(); // 阻止默认行为
         await updateDeviceList();
-        break;
-      case 's':
-        event.preventDefault(); // 阻止默认行为
-        await captureScreen();
         break;
     }
   }
@@ -138,3 +124,4 @@ document.getElementById('toggle-click').addEventListener('click', () => {
 
 // 初始化
 updateDeviceList();
+
