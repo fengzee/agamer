@@ -29,7 +29,7 @@ export class Screen {
     this.currentDeviceSerial = null;
     this.frameCount = 0;
     this.lastFrameTime = 0;
-    this.fps = 0;
+    this.lastFrameMs = 0;
     
     // 添加硬件按钮相关属性
     this.hardwareButtons = [
@@ -61,20 +61,16 @@ export class Screen {
       if (this.isLiveCapturing) {
         const { imageBuffer } = event.detail;
         try {
+          const now = performance.now();
           const image = await this._loadImage(imageBuffer);
           this._displayImage(image);
           
-          // 计算并显示 FPS
-          this.frameCount++;
-          const now = performance.now();
-          const elapsed = now - this.lastFrameTime;
-          
-          if (elapsed >= 1000) {
-            this.fps = Math.round((this.frameCount * 1000) / elapsed);
-            this.frameCount = 0;
-            this.lastFrameTime = now;
-            this._updateStatus('connected');
+          // 计算当前帧花费的毫秒数
+          if (this.lastFrameTime > 0) {
+            this.lastFrameMs = Math.round(now - this.lastFrameTime);
           }
+          this.lastFrameTime = now;
+          this._updateStatus('connected');
         } catch (err) {
           console.error('处理屏幕截图出错:', err);
         }
@@ -144,7 +140,7 @@ export class Screen {
         break;
       case 'connected':
         this.statusDot.classList.add('connected');
-        this.statusText.textContent = `捕获中 (${this.fps} FPS)`;
+        this.statusText.textContent = `捕获中 (${this.lastFrameMs} ms)`;
         break;
       case 'error':
         this.statusText.textContent = '连接错误';
